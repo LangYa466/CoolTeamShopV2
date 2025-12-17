@@ -171,17 +171,6 @@ const ProductDetail: React.FC = () => {
             
             <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800 space-y-4">
                 <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-black p-2 rounded border border-zinc-800 text-sm font-mono text-zinc-300">
-                            {orderSuccess.order_no}
-                        </code>
-                        <Button size="icon" variant="secondary" onClick={() => copyToClipboard(orderSuccess.order_no)}>
-                            <Copy size={14} />
-                        </Button>
-                    </div>
-                </div>
-
-                <div className="space-y-1">
                     <label className="text-xs text-zinc-500">查询密码 (请保存)</label>
                     <div className="flex items-center gap-2">
                         <code className="flex-1 bg-black p-2 rounded border border-zinc-800 text-sm font-mono text-zinc-300">
