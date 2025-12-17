@@ -60,7 +60,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
            <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50 backdrop-blur-sm">
             <div className="flex items-center gap-2 text-zinc-500 mb-2">
                 <Megaphone size={14} />
-                <span className="text-xs font-bold uppercase tracking-wider">公告</span>
             </div>
             <div className="text-sm text-zinc-400 max-h-32 overflow-y-auto custom-scrollbar">
                 <Markdown content={notice} />
