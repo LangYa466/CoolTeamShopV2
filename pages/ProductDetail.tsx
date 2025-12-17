@@ -29,7 +29,13 @@ const ProductDetail: React.FC = () => {
     setLoading(true);
     api.getProduct(id).then(res => {
       if (res.success && res.data) {
-        setProduct(res.data);
+        // API 返回的是数组，取第一个元素
+        const productData = Array.isArray(res.data) ? res.data[0] : res.data;
+        if (productData) {
+          setProduct(productData);
+        } else {
+          navigate('/');
+        }
       } else {
         navigate('/');
       }
@@ -152,7 +158,11 @@ const ProductDetail: React.FC = () => {
 
           <div className="border-t border-zinc-800 pt-6">
             <h3 className="text-lg font-semibold text-white mb-4">商品详情</h3>
-            <Markdown content={product.content || product.description} />
+            {(product.content || product.description) ? (
+              <Markdown content={product.content || product.description} />
+            ) : (
+              <p className="text-zinc-500 text-sm">暂无详细描述</p>
+            )}
           </div>
         </div>
       </div>
