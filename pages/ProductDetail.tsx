@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Product, PayType, OrderCreationResult } from '../types';
 import { Button, Input, Modal, Markdown, Badge } from '../components/ui';
-import { ArrowLeft, CreditCard, ShieldCheck, Zap, CheckCircle, Copy } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Copy, Loader2 } from 'lucide-react';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -99,13 +99,17 @@ const ProductDetail: React.FC = () => {
     navigator.clipboard.writeText(text);
   };
 
-  if (loading) return <div className="pt-20 text-center text-zinc-500">加载中...</div>;
+  if (loading) return (
+    <div className="flex h-[50vh] items-center justify-center text-zinc-500">
+      <Loader2 className="animate-spin mr-2" /> 加载中...
+    </div>
+  );
   if (!product) return null;
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <Button variant="ghost" onClick={() => navigate('/')} className="mb-6 -ml-4 text-zinc-400 hover:text-white">
-        <ArrowLeft size={16} className="mr-2" /> 返回商店
+        <ArrowLeft size={16} className="mr-2" /> 返回主页
       </Button>
 
       <div className="grid md:grid-cols-2 gap-10">
@@ -133,19 +137,13 @@ const ProductDetail: React.FC = () => {
             <div className="text-4xl font-bold text-white">¥{Number(product.price).toFixed(2)}</div>
           </div>
 
-          <div className="p-6 rounded-xl bg-zinc-900/50 border border-zinc-800 space-y-4">
-             <div className="flex items-center gap-3 text-zinc-300">
-                <Zap size={20} className="text-yellow-500" />
-                <span>自动发货</span>
-             </div>
-             <div className="flex items-center gap-3 text-zinc-300">
-                <ShieldCheck size={20} className="text-green-500" />
-                <span>安全支付</span>
-             </div>
-             <div className="flex items-center gap-3 text-zinc-300">
-                <CreditCard size={20} className="text-blue-500" />
-                <span>支持多种支付方式</span>
-             </div>
+          <div className="p-6 rounded-xl bg-zinc-900/50 border border-zinc-800">
+            <h3 className="text-lg font-semibold text-white mb-4">商品详情</h3>
+            {(product.content || product.description) ? (
+              <Markdown content={product.content || product.description} />
+            ) : (
+              <p className="text-zinc-500 text-sm">暂无详细描述</p>
+            )}
           </div>
 
           <Button 
@@ -155,15 +153,6 @@ const ProductDetail: React.FC = () => {
           >
             {product.card_count > 0 ? '立即购买' : '已售罄'}
           </Button>
-
-          <div className="border-t border-zinc-800 pt-6">
-            <h3 className="text-lg font-semibold text-white mb-4">商品详情</h3>
-            {(product.content || product.description) ? (
-              <Markdown content={product.content || product.description} />
-            ) : (
-              <p className="text-zinc-500 text-sm">暂无详细描述</p>
-            )}
-          </div>
         </div>
       </div>
 
@@ -182,7 +171,6 @@ const ProductDetail: React.FC = () => {
             
             <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800 space-y-4">
                 <div className="space-y-1">
-                    <label className="text-xs text-zinc-500">订单号 (请保存)</label>
                     <div className="flex items-center gap-2">
                         <code className="flex-1 bg-black p-2 rounded border border-zinc-800 text-sm font-mono text-zinc-300">
                             {orderSuccess.order_no}

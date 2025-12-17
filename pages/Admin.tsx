@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api, setAuthToken, getAuthToken, removeAuthToken } from '../services/api';
 import { Category, Product, Order } from '../types';
-import { Button, Input, Textarea, Card, Modal, Badge } from '../components/ui';
+import { Button, Input, Textarea, Card, Modal, Badge, Markdown } from '../components/ui';
 import { Trash2, Edit, Plus, Upload, LogOut, Package, Grid, CreditCard, List, Check, Search, Eye } from 'lucide-react';
 
 const Admin: React.FC = () => {
@@ -174,6 +174,7 @@ const ProductsManager = () => {
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [showContentPreview, setShowContentPreview] = useState(false);
   
   // Form Fields
   const [formData, setFormData] = useState<any>({});
@@ -224,6 +225,7 @@ const ProductsManager = () => {
   const openAdd = () => {
     setEditingProduct(null);
     setFormData({ category_id: categories[0]?.id || '', price: 0 });
+    setShowContentPreview(false);
     setIsModalOpen(true);
   };
 
@@ -237,6 +239,7 @@ const ProductsManager = () => {
       content: p.content, 
       image: p.image 
     });
+    setShowContentPreview(false);
     setIsModalOpen(true);
   };
 
@@ -318,7 +321,25 @@ const ProductsManager = () => {
               {uploadStatus && <p className="text-xs text-zinc-500">{uploadStatus}</p>}
            </div>
 
-           <Textarea label="详情 (支持 Markdown)" className="h-32" value={formData.content || ''} onChange={e => setFormData({...formData, content: e.target.value})} />
+           <div className="space-y-2">
+             <div className="flex items-center justify-between">
+               <label className="text-sm text-zinc-400">详情 (支持 Markdown)</label>
+               <Button 
+                 variant={showContentPreview ? 'primary' : 'secondary'} 
+                 size="sm" 
+                 onClick={() => setShowContentPreview(!showContentPreview)}
+               >
+                 <Eye size={14} className="mr-1" /> {showContentPreview ? '编辑' : '预览'}
+               </Button>
+             </div>
+             {showContentPreview ? (
+               <div className="min-h-[8rem] p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg">
+                 {formData.content ? <Markdown content={formData.content} /> : <p className="text-zinc-500 text-sm">暂无内容</p>}
+               </div>
+             ) : (
+               <Textarea className="h-32" value={formData.content || ''} onChange={e => setFormData({...formData, content: e.target.value})} />
+             )}
+           </div>
            
            <Button onClick={handleSaveProduct} className="w-full">保存商品</Button>
         </div>
@@ -484,6 +505,7 @@ const OrdersManager = () => {
 const SettingsManager = () => {
   const [notice, setNotice] = useState('');
   const [msg, setMsg] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     api.getNotice().then(res => { if(res.success && res.data) setNotice(res.data); });
@@ -499,7 +521,29 @@ const SettingsManager = () => {
     <div className="max-w-xl">
       <Card className="space-y-4">
          <h3 className="font-semibold">店铺公告设置</h3>
-         <Textarea className="h-40" value={notice} onChange={e => setNotice(e.target.value)} label="内容 (支持 Markdown)" />
+         <div className="flex gap-2 mb-2">
+           <Button 
+             variant={!showPreview ? 'primary' : 'secondary'} 
+             size="sm" 
+             onClick={() => setShowPreview(false)}
+           >
+             编辑
+           </Button>
+           <Button 
+             variant={showPreview ? 'primary' : 'secondary'} 
+             size="sm" 
+             onClick={() => setShowPreview(true)}
+           >
+             <Eye size={14} className="mr-1" /> 预览
+           </Button>
+         </div>
+         {showPreview ? (
+           <div className="min-h-[10rem] p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg">
+             {notice ? <Markdown content={notice} /> : <p className="text-zinc-500 text-sm">暂无内容</p>}
+           </div>
+         ) : (
+           <Textarea className="h-40" value={notice} onChange={e => setNotice(e.target.value)} label="内容 (支持 Markdown)" />
+         )}
          <div className="flex items-center gap-2">
             <Button onClick={saveNotice}>更新公告</Button>
             {msg && <span className="text-green-500 text-sm flex items-center"><Check size={14} className="mr-1" />{msg}</span>}

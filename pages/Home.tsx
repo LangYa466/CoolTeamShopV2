@@ -25,7 +25,6 @@ const Home: React.FC = () => {
 
         if (catRes.success && catRes.data) {
           setCategories(catRes.data);
-          if (catRes.data.length > 0) setSelectedCategory(catRes.data[0].id);
         }
         if (prodRes.success && prodRes.data) setProducts(prodRes.data);
         if (noticeRes.success && noticeRes.data) setNotice(noticeRes.data);

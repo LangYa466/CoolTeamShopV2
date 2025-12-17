@@ -105,8 +105,29 @@ export const Badge: React.FC<{ children: React.ReactNode; variant?: 'default' | 
 // Markdown Renderer
 export const Markdown: React.FC<{ content: string }> = ({ content }) => {
   return (
-    <div className="prose prose-invert prose-sm max-w-none prose-p:text-zinc-400 prose-headings:text-zinc-200 prose-a:text-blue-400 prose-strong:text-white">
-      <ReactMarkdown>{content}</ReactMarkdown>
+    <div className="markdown-content text-zinc-400 space-y-3">
+      <ReactMarkdown
+        components={{
+          h1: ({ children }) => <h1 className="text-2xl font-bold text-white mb-4">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-xl font-bold text-white mb-3">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-lg font-semibold text-zinc-200 mb-2">{children}</h3>,
+          h4: ({ children }) => <h4 className="text-base font-semibold text-zinc-200 mb-2">{children}</h4>,
+          h5: ({ children }) => <h5 className="text-sm font-semibold text-zinc-300 mb-1">{children}</h5>,
+          h6: ({ children }) => <h6 className="text-sm font-medium text-zinc-300 mb-1">{children}</h6>,
+          p: ({ children }) => <p className="text-zinc-400 leading-relaxed">{children}</p>,
+          a: ({ href, children }) => <a href={href} className="text-blue-400 hover:underline">{children}</a>,
+          strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+          em: ({ children }) => <em className="italic">{children}</em>,
+          ul: ({ children }) => <ul className="list-disc list-inside space-y-1 text-zinc-400">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 text-zinc-400">{children}</ol>,
+          li: ({ children }) => <li>{children}</li>,
+          code: ({ children }) => <code className="bg-zinc-800 px-1.5 py-0.5 rounded text-sm text-zinc-300">{children}</code>,
+          pre: ({ children }) => <pre className="bg-zinc-900 p-4 rounded-lg overflow-x-auto">{children}</pre>,
+          blockquote: ({ children }) => <blockquote className="border-l-4 border-zinc-700 pl-4 italic text-zinc-500">{children}</blockquote>,
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   );
 };

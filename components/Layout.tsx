@@ -55,19 +55,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         ))}
       </nav>
 
-      {notice && (
-        <div className="px-4 py-2">
-           <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50 backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-zinc-500 mb-2">
-                <Megaphone size={14} />
-            </div>
-            <div className="text-sm text-zinc-400 max-h-32 overflow-y-auto custom-scrollbar">
-                <Markdown content={notice} />
-            </div>
-          </div>
-        </div>
-      )}
-
       <a
         href="https://www.coolteam.top/"
         target="_blank"
@@ -76,9 +63,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       >
         <div className="flex flex-col gap-1">
           <span className="text-zinc-600 text-xs group-hover:text-zinc-500 transition-colors">© {new Date().getFullYear()} CoolTeam</span>
-          <span className="text-sm text-zinc-500 font-medium group-hover:text-white transition-colors">
-            CoolTeam.top
-          </span>
         </div>
       </a>
     </div>
