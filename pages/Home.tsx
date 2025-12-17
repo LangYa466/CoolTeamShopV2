@@ -55,9 +55,6 @@ const Home: React.FC = () => {
     <div className="space-y-8">
       {/* Header Section */}
       <div className="space-y-4 mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
-          欢迎来到 CoolTeamShop
-        </h1>
         <div className="text-zinc-400 bg-zinc-900/30 p-4 rounded-xl border border-zinc-800/50">
           {notice ? (
             <Markdown content={notice} />
