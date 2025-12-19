@@ -116,25 +116,26 @@ const ProductDetail: React.FC = () => {
       <div className="grid md:grid-cols-2 gap-10">
         {/* Left: Image & Info */}
         <div className="space-y-6">
-          <div 
-            className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 aspect-video md:aspect-square relative cursor-pointer group"
-            onClick={() => product.image && setIsImageOpen(true)}
-          >
+          <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 aspect-video md:aspect-square relative">
             {product.image ? (
-              <>
+              <button 
+                type="button"
+                className="w-full h-full cursor-pointer group block"
+                onClick={() => setIsImageOpen(true)}
+              >
                 <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                  <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm">点击放大</span>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center pointer-events-none">
+                  <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm bg-black/50 px-3 py-1 rounded">点击放大</span>
                 </div>
-              </>
+              </button>
             ) : (
               <div className="flex h-full items-center justify-center text-zinc-700">暂无图片</div>
             )}
-             <div className="absolute top-4 right-4">
-                 <Badge variant={product.card_count > 0 ? 'success' : 'warning'}>
-                      {product.card_count > 0 ? `库存: ${product.card_count}` : '暂时缺货'}
-                 </Badge>
-             </div>
+            <div className="absolute top-4 right-4 pointer-events-none">
+              <Badge variant={product.card_count > 0 ? 'success' : 'warning'}>
+                {product.card_count > 0 ? `库存: ${product.card_count}` : '暂时缺货'}
+              </Badge>
+            </div>
           </div>
         </div>
 

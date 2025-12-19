@@ -96,7 +96,7 @@ export const Badge: React.FC<{ children: React.ReactNode; variant?: 'default' | 
     warning: "bg-yellow-900/30 text-yellow-400 border border-yellow-900/50",
   };
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${styles[variant]}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 whitespace-nowrap shrink-0 ${styles[variant]}`}>
       {children}
     </span>
   );
