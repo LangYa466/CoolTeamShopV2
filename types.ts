@@ -13,6 +13,7 @@ export interface Product {
   description: string;
   content: string;
   image: string;
+  delivery_info: string;
   card_count: number;
   category?: Category;
 }

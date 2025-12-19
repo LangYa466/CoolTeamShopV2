@@ -237,7 +237,8 @@ const ProductsManager = () => {
       price: p.price, 
       description: p.description, 
       content: p.content, 
-      image: p.image 
+      image: p.image,
+      delivery_info: p.delivery_info
     });
     setShowContentPreview(false);
     setIsModalOpen(true);
@@ -340,6 +341,14 @@ const ProductsManager = () => {
                <Textarea className="h-32" value={formData.content || ''} onChange={e => setFormData({...formData, content: e.target.value})} />
              )}
            </div>
+
+           <Textarea 
+             label="发货信息 (支付成功后显示)" 
+             placeholder="支付成功后显示给用户的信息"
+             className="h-20" 
+             value={formData.delivery_info || ''} 
+             onChange={e => setFormData({...formData, delivery_info: e.target.value})} 
+           />
            
            <Button onClick={handleSaveProduct} className="w-full">保存商品</Button>
         </div>
