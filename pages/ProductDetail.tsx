@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Product, PayType, OrderCreationResult } from '../types';
 import { Button, Input, Modal, Markdown, Badge } from '../components/ui';
-import { ArrowLeft, CheckCircle, Copy, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Copy, Loader2, X } from 'lucide-react';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +19,7 @@ const ProductDetail: React.FC = () => {
   const [buying, setBuying] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [orderSuccess, setOrderSuccess] = useState<OrderCreationResult | null>(null);
+  const [isImageOpen, setIsImageOpen] = useState(false);
 
   useEffect(() => {
     // Load persisted contact info
@@ -115,9 +116,17 @@ const ProductDetail: React.FC = () => {
       <div className="grid md:grid-cols-2 gap-10">
         {/* Left: Image & Info */}
         <div className="space-y-6">
-          <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 aspect-video md:aspect-square relative">
+          <div 
+            className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 aspect-video md:aspect-square relative cursor-pointer group"
+            onClick={() => product.image && setIsImageOpen(true)}
+          >
             {product.image ? (
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              <>
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                  <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm">点击放大</span>
+                </div>
+              </>
             ) : (
               <div className="flex h-full items-center justify-center text-zinc-700">暂无图片</div>
             )}
@@ -155,6 +164,27 @@ const ProductDetail: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Image Lightbox */}
+      {isImageOpen && product.image && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+          onClick={() => setIsImageOpen(false)}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-2"
+            onClick={() => setIsImageOpen(false)}
+          >
+            <X size={32} />
+          </button>
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {/* Checkout Modal */}
       <Modal 

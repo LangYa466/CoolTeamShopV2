@@ -110,8 +110,8 @@ const Home: React.FC = () => {
                   </div>
                 )}
                 <div className="p-5 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-semibold text-lg text-white group-hover:text-blue-400 transition-colors">
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-semibold text-lg text-white group-hover:text-blue-400 transition-colors truncate flex-1 min-w-0">
                       {product.name}
                     </h3>
                     <Badge variant={product.card_count > 0 ? 'success' : 'warning'}>
