@@ -1,292 +1,272 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Product, PayType, OrderCreationResult } from '../types';
-import { Button, Input, Modal, Markdown, Badge } from '../components/ui';
-import { ArrowLeft, CheckCircle, Copy, Loader2, X } from 'lucide-react';
+import { Product, OrderResponse } from '../types';
+import { Button, Modal, Markdown } from '../components/ui';
+import { ArrowLeft, CreditCard, CheckCircle, Package, AlertCircle, ShoppingCart, Loader2 } from 'lucide-react';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Checkout State
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [contactQQ, setContactQQ] = useState('');
-  const [payType, setPayType] = useState<PayType>(PayType.ALIPAY);
-  const [buying, setBuying] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Order Form State
+  const [email, setEmail] = useState('');
+  const [contactQQ, setContactQQ] = useState(localStorage.getItem('last_qq') || '');
+  const [password, setPassword] = useState(localStorage.getItem('last_query_pwd') || '');
+  const [paymentMethod, setPaymentMethod] = useState<'alipay' | 'wxpay'>('alipay');
+  const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [orderSuccess, setOrderSuccess] = useState<OrderCreationResult | null>(null);
-  const [isImageOpen, setIsImageOpen] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState<OrderResponse | null>(null);
 
   useEffect(() => {
-    // Load persisted contact info
-    const savedQQ = localStorage.getItem('last_contact_qq');
-    if (savedQQ) setContactQQ(savedQQ);
-
-    if (!id) return;
-    setLoading(true);
-    api.getProduct(id).then(res => {
-      if (res.success && res.data) {
-        // API 返回的是数组，取第一个元素
-        const productData = Array.isArray(res.data) ? res.data[0] : res.data;
-        if (productData) {
-          setProduct(productData);
-        } else {
-          navigate('/');
+    if (id) {
+      api.getProduct(id).then(res => {
+        if (res.success && res.data) {
+          setProduct(res.data);
         }
-      } else {
-        navigate('/');
-      }
-      setLoading(false);
-    });
-  }, [id, navigate]);
+      }).finally(() => setLoading(false));
+    }
+  }, [id]);
 
-  const handleBuy = async () => {
-    setErrorMsg('');
-    if (!product) return;
-    
-    if (!contactQQ) {
-      setErrorMsg('请输入联系QQ，用于查询订单');
+  useEffect(() => {
+    if (contactQQ) localStorage.setItem('last_qq', contactQQ);
+    if (password) localStorage.setItem('last_query_pwd', password);
+  }, [contactQQ, password]);
+
+  const handleCreateOrder = async () => {
+    if (!contactQQ || !product) {
+      setErrorMsg('请输入联系方式 (QQ)');
+      return;
+    }
+    if (product.query_pwd_mode === 1 && !password) {
+      setErrorMsg('该商品需要设置查询密码');
       return;
     }
 
-    // Save contact info
-    localStorage.setItem('last_contact_qq', contactQQ);
+    setSubmitting(true);
+    setErrorMsg('');
 
-    setBuying(true);
     try {
       const res = await api.createOrder({
         product_id: product.id,
         quantity,
-        pay_type: payType,
-        contact_qq: contactQQ
+        payment_method: paymentMethod,
+        contact_type: 1, // QQ
+        contact_info: contactQQ,
+        query_password: password
       });
 
       if (res.success && res.data) {
-        // Save order info locally
-        const history = JSON.parse(localStorage.getItem('order_history') || '[]');
-        history.push({
-            order_no: res.data.order_no,
-            query_password: res.data.query_password,
-            date: new Date().toISOString()
-        });
-        localStorage.setItem('order_history', JSON.stringify(history));
-        
         setOrderSuccess(res.data);
       } else {
         setErrorMsg(res.message || '创建订单失败');
       }
-    } catch (error) {
-      setErrorMsg('网络错误，请重试');
+    } catch (e: any) {
+      setErrorMsg(e.message || '创建订单请求失败');
     } finally {
-      setBuying(false);
+      setSubmitting(false);
     }
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    // Reset state after a short delay
-    setTimeout(() => {
-        setOrderSuccess(null);
-        setErrorMsg('');
-        setQuantity(1);
-    }, 300);
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
-  if (loading) return (
-    <div className="flex h-[50vh] items-center justify-center text-zinc-500">
-      <Loader2 className="animate-spin mr-2" /> 加载中...
-    </div>
-  );
-  if (!product) return null;
+  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-zinc-500" /></div>;
+  if (!product) return <div className="text-center py-20 text-zinc-500">商品不存在</div>;
 
   return (
-    <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <Button variant="ghost" onClick={() => navigate('/')} className="mb-6 -ml-4 text-zinc-400 hover:text-white">
-        <ArrowLeft size={16} className="mr-2" /> 返回主页
+    <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
+      <Button
+        variant="ghost"
+        onClick={() => navigate('/')}
+        className="mb-6 text-zinc-500 hover:text-white pl-0 gap-2"
+      >
+        <ArrowLeft size={16} /> 返回列表
       </Button>
 
-      <div className="grid md:grid-cols-2 gap-10">
-        {/* Left: Image & Info */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* Left Column: Image */}
         <div className="space-y-6">
-          <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 aspect-video md:aspect-square relative">
+          <div className="aspect-square w-full rounded-2xl bg-zinc-900/30 border border-zinc-800/50 overflow-hidden relative group">
             {product.image ? (
-              <button 
-                type="button"
-                className="w-full h-full cursor-pointer group block"
-                onClick={() => setIsImageOpen(true)}
-              >
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center pointer-events-none">
-                  <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm bg-black/50 px-3 py-1 rounded">点击放大</span>
-                </div>
-              </button>
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
             ) : (
-              <div className="flex h-full items-center justify-center text-zinc-700">暂无图片</div>
+              <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                <Package size={64} strokeWidth={1} />
+              </div>
             )}
-            <div className="absolute top-4 right-4 pointer-events-none">
-              <Badge variant={product.card_count > 0 ? 'success' : 'warning'}>
-                {product.card_count > 0 ? `库存: ${product.card_count}` : '暂时缺货'}
-              </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <div className="p-4 rounded-xl bg-zinc-900/30 border border-zinc-800/50 flex flex-col items-center justify-center text-center">
+              <span className="text-xs text-zinc-500 mb-1">库存状态</span>
+              <span className={`text-lg font-bold ${product.card_count > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {product.card_count > 0 ? `剩余 ${product.card_count} 件` : '缺货中'}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Right: Details & Action */}
-        <div className="space-y-8">
-          <div>
-            <div className="text-zinc-500 text-sm mb-2">{product.category?.name}</div>
-            <h1 className="text-3xl font-bold text-white mb-4">{product.name}</h1>
-            <div className="text-4xl font-bold text-white">¥{Number(product.price).toFixed(2)}</div>
+        {/* Right Column: Details */}
+        <div className="flex flex-col">
+          <h1 className="text-3xl font-bold text-white mb-4 leading-tight">{product.name}</h1>
+
+          <div className="flex items-baseline gap-2 mb-8 pb-8 border-b border-zinc-900">
+            <span className="text-2xl font-bold text-white">¥{Number(product.price).toFixed(2)}</span>
+            <span className="text-zinc-500">/ 件</span>
           </div>
 
-          <div className="p-6 rounded-xl bg-zinc-900/50 border border-zinc-800">
-            <h3 className="text-lg font-semibold text-white mb-4">商品详情</h3>
-            {(product.content || product.description) ? (
-              <Markdown content={product.content || product.description} />
-            ) : (
-              <p className="text-zinc-500 text-sm">暂无详细描述</p>
-            )}
+          <div className="prose prose-invert prose-zinc max-w-none text-sm text-zinc-400 mb-8 flex-1">
+            <h3 className="text-white font-bold text-sm uppercase tracking-wide mb-3">商品详情</h3>
+            <div className="bg-zinc-900/20 rounded-xl p-4 border border-zinc-800/50">
+              <Markdown content={product.description || '暂无描述'} />
+            </div>
           </div>
 
-          <Button 
-            className="w-full h-12 text-lg" 
-            onClick={() => setIsModalOpen(true)}
-            disabled={product.card_count <= 0}
-          >
-            {product.card_count > 0 ? '立即购买' : '已售罄'}
-          </Button>
+          <div className="mt-8 space-y-4">
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full h-14 text-base font-bold shadow-lg shadow-blue-500/10 rounded-xl"
+              onClick={() => setIsModalOpen(true)}
+              disabled={product.card_count <= 0}
+            >
+              {product.card_count > 0 ? '立即购买' : '暂时缺货'}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Image Lightbox */}
-      {isImageOpen && product.image && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
-          onClick={() => setIsImageOpen(false)}
-        >
-          <button 
-            className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-2"
-            onClick={() => setIsImageOpen(false)}
-          >
-            <X size={32} />
-          </button>
-          <img 
-            src={product.image} 
-            alt={product.name} 
-            className="max-w-full max-h-[90vh] object-contain rounded-lg"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
-
-      {/* Checkout Modal */}
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
+      {/* Purchase Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setOrderSuccess(null);
+          setErrorMsg('');
+        }}
         title={orderSuccess ? "订单创建成功" : "确认订单"}
       >
         {orderSuccess ? (
-          <div className="space-y-6">
-            <div className="flex flex-col items-center justify-center py-4 text-green-500 space-y-2">
-                <CheckCircle size={48} />
-                <span className="font-semibold text-lg text-white">下单成功</span>
+          <div className="py-6 space-y-6 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="h-20 w-20 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center">
+                <CheckCircle size={40} />
+              </div>
             </div>
-            
-            <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800 space-y-4">
-                <div className="space-y-1">
-                    <label className="text-xs text-zinc-500">查询密码 (请保存)</label>
-                    <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-black p-2 rounded border border-zinc-800 text-sm font-mono text-zinc-300">
-                            {orderSuccess.query_password}
-                        </code>
-                         <Button size="icon" variant="secondary" onClick={() => copyToClipboard(orderSuccess.query_password)}>
-                            <Copy size={14} />
-                        </Button>
-                    </div>
-                </div>
+            <div>
+              <h3 className="text-xl font-bold text-white">订单已创建</h3>
+              <p className="text-zinc-500 mt-2 text-sm">订单号: {orderSuccess.order_no}</p>
             </div>
 
-            <p className="text-xs text-zinc-500 text-center">
-                请务必保存以上信息用于查询订单和卡密。
-            </p>
+            <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+              <p className="text-xs text-zinc-500 mb-1">应付金额</p>
+              <div className="text-2xl font-bold text-white">¥{orderSuccess.total_price}</div>
+            </div>
 
-            <Button className="w-full" onClick={() => window.location.href = orderSuccess.pay_url}>
-                立即支付 ¥{orderSuccess.total_price}
+            <Button
+              className="w-full h-12 text-base font-bold rounded-xl"
+              onClick={() => window.location.href = orderSuccess.pay_url}
+            >
+              前往支付
             </Button>
           </div>
         ) : (
-            <div className="space-y-4">
-            <div className="p-3 bg-zinc-900 rounded-lg border border-zinc-800">
-                <div className="text-sm text-zinc-400">商品名称</div>
-                <div className="font-medium text-white">{product.name}</div>
-                <div className="text-sm text-zinc-400 mt-1">单价: ¥{product.price}</div>
-            </div>
+          <div className="space-y-5 py-2">
 
-            <div className="grid grid-cols-2 gap-4">
-                <Input 
-                    label="购买数量" 
-                    type="number" 
-                    min={1} 
-                    max={product.card_count}
-                    value={quantity} 
-                    onChange={(e) => setQuantity(Number(e.target.value))} 
-                />
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-400">总价</label>
-                    <div className="flex h-10 w-full items-center rounded-md border border-zinc-800 bg-zinc-900 px-3 text-white">
-                        ¥{(quantity * product.price).toFixed(2)}
-                    </div>
-                </div>
-            </div>
-
-            <div className="space-y-1">
-                <Input 
-                    label="联系QQ (用于查询订单)" 
-                    placeholder="请输入QQ号"
-                    value={contactQQ}
-                    onChange={(e) => {
-                        setContactQQ(e.target.value);
-                        if(errorMsg) setErrorMsg('');
-                    }}
-                    className={errorMsg ? "border-red-500 focus-visible:ring-red-500" : ""}
-                />
-                {errorMsg && <p className="text-red-500 text-xs">{errorMsg}</p>}
-            </div>
-
+            {/* Quantity */}
             <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">支付方式</label>
-                <div className="grid grid-cols-2 gap-2">
-                    <button 
-                        onClick={() => setPayType(PayType.ALIPAY)}
-                        className={`p-3 rounded-lg border text-sm transition-all ${payType === PayType.ALIPAY ? 'bg-blue-900/20 border-blue-500 text-blue-400' : 'bg-black border-zinc-800 text-zinc-400 hover:bg-zinc-900'}`}
-                    >
-                        支付宝
-                    </button>
-                    <button 
-                        onClick={() => setPayType(PayType.WXPAY)}
-                        className={`p-3 rounded-lg border text-sm transition-all ${payType === PayType.WXPAY ? 'bg-green-900/20 border-green-500 text-green-400' : 'bg-black border-zinc-800 text-zinc-400 hover:bg-zinc-900'}`}
-                    >
-                        微信支付
-                    </button>
-                </div>
+              <label className="text-sm font-medium text-zinc-400">购买数量</label>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-10 h-10 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-white transition-colors"
+                >-</button>
+                <span className="flex-1 text-center font-bold text-xl text-white">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(Math.min(product.card_count, quantity + 1))}
+                  className="w-10 h-10 rounded-lg bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-white transition-colors"
+                >+</button>
+              </div>
             </div>
 
-            <Button 
-                className="w-full mt-4" 
-                onClick={handleBuy} 
-                isLoading={buying}
-            >
-                支付 ¥{(quantity * product.price).toFixed(2)}
-            </Button>
+            {/* Contact Info */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">联系方式 (QQ)</label>
+              <input
+                type="text"
+                placeholder="请输入您的QQ号，用于查询订单"
+                value={contactQQ}
+                onChange={(e) => {
+                  setContactQQ(e.target.value);
+                  if (errorMsg) setErrorMsg('');
+                }}
+                className={`w-full bg-zinc-900/50 border rounded-xl px-4 py-3 text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${errorMsg ? 'border-red-500/50 focus:border-red-500' : 'border-zinc-800 focus:border-zinc-700'
+                  }`}
+              />
             </div>
+
+            {/* Query Password (Optional) */}
+            {product.query_pwd_mode === 1 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-400">查询密码 (必填)</label>
+                <input
+                  type="text"
+                  placeholder="请设置订单查询密码"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-zinc-700 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                />
+              </div>
+            )}
+
+            {/* Payment Method */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">支付方式</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setPaymentMethod('alipay')}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all duration-200 ${paymentMethod === 'alipay'
+                    ? 'bg-blue-600/10 border-blue-500 text-blue-400'
+                    : 'bg-zinc-900/30 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                    }`}
+                >
+                  <span className="font-bold">支付宝</span>
+                </button>
+                <button
+                  onClick={() => setPaymentMethod('wxpay')}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all duration-200 ${paymentMethod === 'wxpay'
+                    ? 'bg-green-600/10 border-green-500 text-green-400'
+                    : 'bg-zinc-900/30 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                    }`}
+                >
+                  <span className="font-bold">微信支付</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {errorMsg && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-500 text-sm">
+                <AlertCircle size={16} />
+                {errorMsg}
+              </div>
+            )}
+
+            <Button
+              variant="primary"
+              className="w-full h-12 text-base font-bold rounded-xl mt-4"
+              onClick={handleCreateOrder}
+              isLoading={submitting}
+            >
+              {submitting ? '正在提交...' : `确认支付 ¥${(Number(product.price) * quantity).toFixed(2)}`}
+            </Button>
+          </div>
         )}
       </Modal>
     </div>
