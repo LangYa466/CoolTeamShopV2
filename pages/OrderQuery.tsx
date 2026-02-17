@@ -124,7 +124,7 @@ const OrderQuery: React.FC = () => {
                     <div className="space-y-1">
                       <h2 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">{order.product_name}</h2>
                       <div className="flex items-center gap-2 text-xs text-zinc-500">
-                        <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono">#{order.order_no}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono break-all">#{order.order_no}</span>
                         <span>•</span>
                         <span>{order.created_at}</span>
                       </div>
@@ -161,8 +161,8 @@ const OrderQuery: React.FC = () => {
                               <button
                                 onClick={() => copyToClipboard(card, uniqueId)}
                                 className={`h-12 w-12 rounded-xl flex items-center justify-center transition-all ${copiedIndex === uniqueId
-                                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                    : 'bg-zinc-800 text-zinc-400 hover:bg-white hover:text-black border border-transparent'
+                                  ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                                  : 'bg-zinc-800 text-zinc-400 hover:bg-white hover:text-black border border-transparent'
                                   }`}
                                 title="复制卡密"
                               >

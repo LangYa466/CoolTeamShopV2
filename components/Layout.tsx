@@ -37,7 +37,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               C
             </div>
             <h1 className="text-2xl font-black tracking-tighter text-white uppercase italic">
-              ool<span className="text-zinc-600 group-hover:text-white transition-colors">Team</span>
+              Cool<span className="text-zinc-600 group-hover:text-white transition-colors">TeamShop</span>
             </h1>
           </div>
         </Link>

@@ -571,7 +571,7 @@ const OrdersManager = () => {
             <div className="grid grid-cols-2 gap-y-6 gap-x-8">
               <div className="space-y-1">
                 <label className="text-zinc-600 text-[10px] uppercase font-bold tracking-widest pl-0.5">订单编号</label>
-                <div className="font-mono text-sm text-zinc-300 bg-black/40 p-2.5 rounded-xl border border-zinc-800/50 tracking-tight">{selectedOrder.order_no}</div>
+                <div className="font-mono text-sm text-zinc-300 bg-black/40 p-2.5 rounded-xl border border-zinc-800/50 tracking-tight break-all">{selectedOrder.order_no}</div>
               </div>
               <div className="space-y-1">
                 <label className="text-zinc-600 text-[10px] uppercase font-bold tracking-widest pl-0.5">当前状态</label>
