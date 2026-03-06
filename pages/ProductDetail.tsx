@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Product, OrderResponse } from '../types';
 import { Button, Modal, Markdown } from '../components/ui';
-import { ArrowLeft, CreditCard, CheckCircle, Package, AlertCircle, ShoppingCart, Loader2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, CheckCircle, Package, AlertCircle, ShoppingCart, Loader2, X } from 'lucide-react';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +12,7 @@ const ProductDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // 新增：控制全图预览的状态
 
   // Order Form State
   const [email, setEmail] = useState('');
@@ -88,16 +89,30 @@ const ProductDetail: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Left Column: Image */}
         <div className="space-y-6">
-          <div className="aspect-square w-full rounded-2xl bg-zinc-900/30 border border-zinc-800/50 overflow-hidden relative group">
+          {/* 修改点：去除了 aspect-square，改为自适应高度，并且添加了点击事件和 hover 放大提示 */}
+          <div 
+            className="w-full rounded-2xl bg-zinc-900/30 border border-zinc-800/50 overflow-hidden relative group cursor-pointer min-h-[300px] flex items-center justify-center"
+            onClick={() => product.image && setIsImageModalOpen(true)}
+            title={product.image ? "点击查看全图" : ""}
+          >
             {product.image ? (
               <img
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className="w-full h-auto max-h-[600px] object-contain transition-transform duration-700 group-hover:scale-[1.02]"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-zinc-700">
+              <div className="w-full h-64 flex items-center justify-center text-zinc-700">
                 <Package size={64} strokeWidth={1} />
+              </div>
+            )}
+            
+            {/* 提示点击查看全图的遮罩 */}
+            {product.image && (
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+                <div className="bg-black/60 text-white px-4 py-2 rounded-full text-sm backdrop-blur-sm">
+                  点击查看全图
+                </div>
               </div>
             )}
           </div>
@@ -141,6 +156,30 @@ const ProductDetail: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Full Image Preview Modal (新增的全图预览弹窗) */}
+      {isImageModalOpen && product?.image && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-8 cursor-zoom-out animate-in fade-in duration-200"
+          onClick={() => setIsImageModalOpen(false)}
+        >
+          <button 
+            className="absolute top-4 right-4 sm:top-8 sm:right-8 text-zinc-400 hover:text-white transition-colors bg-black/50 rounded-full p-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsImageModalOpen(false);
+            }}
+          >
+            <X size={24} />
+          </button>
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-contain cursor-default select-none"
+            onClick={(e) => e.stopPropagation()} // 阻止点击图片本身时关闭，你可以按需移除此行让点击图片也能关闭
+          />
+        </div>
+      )}
 
       {/* Purchase Modal */}
       <Modal
