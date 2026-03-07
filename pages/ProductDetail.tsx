@@ -16,7 +16,6 @@ const ProductDetail: React.FC = () => {
 
   // Order Form State
   const [contactQQ, setContactQQ] = useState(localStorage.getItem('last_qq') || '');
-  const [password, setPassword] = useState(localStorage.getItem('last_query_pwd') || '');
   const [paymentMethod, setPaymentMethod] = useState<'alipay' | 'wxpay'>('alipay');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -34,8 +33,7 @@ const ProductDetail: React.FC = () => {
 
   useEffect(() => {
     if (contactQQ) localStorage.setItem('last_qq', contactQQ);
-    if (password) localStorage.setItem('last_query_pwd', password);
-  }, [contactQQ, password]);
+  }, [contactQQ]);
 
   const handleCreateOrder = async () => {
     if (!contactQQ || !product) {
@@ -56,6 +54,10 @@ const ProductDetail: React.FC = () => {
 
       if (res.success && res.data) {
         setOrderSuccess(res.data);
+        // 保存查询密码到本地，方便订单查询页自动回填
+        if (res.data.query_password) {
+          localStorage.setItem('last_query_pwd', res.data.query_password);
+        }
       } else {
         setErrorMsg(res.message || '创建订单失败');
       }
@@ -199,6 +201,12 @@ const ProductDetail: React.FC = () => {
             <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
               <p className="text-xs text-zinc-500 mb-1">应付金额</p>
               <div className="text-2xl font-bold text-white">¥{orderSuccess.total_price}</div>
+            </div>
+
+            <div className="bg-amber-500/10 p-4 rounded-xl border border-amber-500/30">
+              <p className="text-xs text-amber-400 font-bold mb-1">⚠ 查询密码（请务必保存）</p>
+              <div className="text-lg font-bold text-white font-mono tracking-widest select-all">{orderSuccess.query_password}</div>
+              <p className="text-[11px] text-zinc-500 mt-2">支付后可凭此密码和QQ号查询订单和提取卡密</p>
             </div>
 
             <Button
