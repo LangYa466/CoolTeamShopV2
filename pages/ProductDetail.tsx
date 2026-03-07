@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Product, OrderResponse } from '../types';
+import { Product, OrderCreationResult } from '../types';
 import { Button, Modal, Markdown } from '../components/ui';
 import { ArrowLeft, CreditCard, CheckCircle, Package, AlertCircle, ShoppingCart, Loader2, X } from 'lucide-react';
 
@@ -15,13 +15,12 @@ const ProductDetail: React.FC = () => {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false); // 新增：控制全图预览的状态
 
   // Order Form State
-  const [email, setEmail] = useState('');
   const [contactQQ, setContactQQ] = useState(localStorage.getItem('last_qq') || '');
   const [password, setPassword] = useState(localStorage.getItem('last_query_pwd') || '');
   const [paymentMethod, setPaymentMethod] = useState<'alipay' | 'wxpay'>('alipay');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [orderSuccess, setOrderSuccess] = useState<OrderResponse | null>(null);
+  const [orderSuccess, setOrderSuccess] = useState<OrderCreationResult | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -43,10 +42,6 @@ const ProductDetail: React.FC = () => {
       setErrorMsg('请输入联系方式 (QQ)');
       return;
     }
-    if (product.query_pwd_mode === 1 && !password) {
-      setErrorMsg('该商品需要设置查询密码');
-      return;
-    }
 
     setSubmitting(true);
     setErrorMsg('');
@@ -55,10 +50,8 @@ const ProductDetail: React.FC = () => {
       const res = await api.createOrder({
         product_id: product.id,
         quantity,
-        payment_method: paymentMethod,
-        contact_type: 1, // QQ
-        contact_info: contactQQ,
-        query_password: password
+        pay_type: paymentMethod,
+        contact_qq: contactQQ,
       });
 
       if (res.success && res.data) {
@@ -90,7 +83,7 @@ const ProductDetail: React.FC = () => {
         {/* Left Column: Image */}
         <div className="space-y-6">
           {/* 修改点：去除了 aspect-square，改为自适应高度，并且添加了点击事件和 hover 放大提示 */}
-          <div 
+          <div
             className="w-full rounded-2xl bg-zinc-900/30 border border-zinc-800/50 overflow-hidden relative group cursor-pointer min-h-[300px] flex items-center justify-center"
             onClick={() => product.image && setIsImageModalOpen(true)}
             title={product.image ? "点击查看全图" : ""}
@@ -106,7 +99,7 @@ const ProductDetail: React.FC = () => {
                 <Package size={64} strokeWidth={1} />
               </div>
             )}
-            
+
             {/* 提示点击查看全图的遮罩 */}
             {product.image && (
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
@@ -159,11 +152,11 @@ const ProductDetail: React.FC = () => {
 
       {/* Full Image Preview Modal (新增的全图预览弹窗) */}
       {isImageModalOpen && product?.image && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-8 cursor-zoom-out animate-in fade-in duration-200"
           onClick={() => setIsImageModalOpen(false)}
         >
-          <button 
+          <button
             className="absolute top-4 right-4 sm:top-8 sm:right-8 text-zinc-400 hover:text-white transition-colors bg-black/50 rounded-full p-2"
             onClick={(e) => {
               e.stopPropagation();
@@ -250,19 +243,7 @@ const ProductDetail: React.FC = () => {
               />
             </div>
 
-            {/* Query Password (Optional) */}
-            {product.query_pwd_mode === 1 && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">查询密码 (必填)</label>
-                <input
-                  type="text"
-                  placeholder="请设置订单查询密码"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-zinc-700 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                />
-              </div>
-            )}
+
 
             {/* Payment Method */}
             <div className="space-y-2">
